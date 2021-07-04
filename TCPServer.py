@@ -25,11 +25,15 @@ while 1:
 
         serializar = struct.Struct("{}s".format(int(dados.split()[0])))
 
-        socketConexao.send("É possível enviar o arquivo".encode())
+        socketConexao.send("O arquivo pode ser enviado".encode())
 
         buffer_arquivo = b''
-        while(part_arquivo := socketConexao.recv(1024)):
-            buffer_arquivo += part_arquivo
+        while True:
+            part_arquivo = socketConexao.recv(1024)
+            if(part_arquivo):
+                buffer_arquivo += part_arquivo
+            else:
+                break
 
         with open(f'downloads/{dir_downloads}', 'w+b') as novo_arquivo:
             novo_arquivo.write(buffer_arquivo)
