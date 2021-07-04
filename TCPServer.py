@@ -35,7 +35,7 @@ while 1:
             else:
                 break
 
-        with open(f'downloads/{dir_downloads}', 'w+b') as novo_arquivo:
+        with open('downloads/{}'.format(dir_downloads), 'w+b') as novo_arquivo:
             novo_arquivo.write(buffer_arquivo)
 
         print('Arquivo Salvo')
