@@ -1,0 +1,186 @@
+node n1 {
+    type router
+    model router
+    network-config {
+	hostname STI
+	!
+	interface eth1
+	 ip address 192.0.3.1/24
+	 ipv6 address 2001:db8:1::1/64
+	!
+	interface eth0
+	 ip address 192.0.2.1/24
+	 ipv6 address 2001:db8:0::1/64
+	!
+    }
+    canvas c1
+    iconcoords {147.0 308.0}
+    labelcoords {147.0 340.0}
+    interface-peer {eth0 n2}
+    interface-peer {eth1 n3}
+}
+
+node n2 {
+    type hub
+    network-config {
+	hostname lab
+	!
+    }
+    canvas c1
+    iconcoords {496.0 298.0}
+    labelcoords {496.0 322.0}
+    interface-peer {e0 n4}
+    interface-peer {e1 n5}
+    interface-peer {e2 n1}
+}
+
+node n3 {
+    type router
+    model host
+    network-config {
+	hostname DFA
+	!
+	interface eth0
+	 ip address 192.0.3.10/24
+	 ipv6 address 2001:db8:1::10/64
+	!
+    }
+    canvas c1
+    iconcoords {55.0 122.0}
+    labelcoords {55.0 154.0}
+    interface-peer {eth0 n1}
+    services {DefaultRoute SSH UserDefined}
+    custom-config {
+	custom-config-id service:UserDefined
+	custom-command UserDefined
+	config {
+	files=('', 'O_Servidor.py', )
+	cmdup=('python O_Servidor.py', )
+	meta=ServerFIle
+	}
+    }
+    custom-config {
+	custom-config-id service:UserDefined:O_Servidor.py
+	custom-command O_Servidor.py
+	config {
+	from socket import *
+	import struct
+	import os
+	
+	
+	portaServidor = 8000
+	
+	socketServidor = socket(AF_INET, SOCK_STREAM)
+	
+	socketServidor.bind(('192.0.3.10', portaServidor))
+	
+	socketServidor.listen(1)
+	
+	print("O servidor esta pronto para receber")
+	
+	while 1:
+	
+	    socketConexao, endereco = socketServidor.accept()
+	
+	    request = socketConexao.recv(1024)
+	
+	    if request != b"":
+	
+	        mensagem, dir_downloads, dados = request.decode().split(":")
+	
+	        serializar = struct.Struct("{}s".format(int(dados.split()[0])))
+	
+	        socketConexao.send("O arquivo pode ser enviado".encode())
+	
+	        buffer_arquivo = b''
+	        while True:
+	            part_arquivo = socketConexao.recv(1024)
+	            if(part_arquivo):
+	                buffer_arquivo += part_arquivo
+	            else:
+	                break
+	
+	        with open('{}'.format(dir_downloads), 'w+b') as novo_arquivo:
+	            novo_arquivo.write(buffer_arquivo)
+	
+	        print('Arquivo Salvo')
+	    socketConexao.close()
+	
+	}
+    }
+}
+
+node n4 {
+    type router
+    model PC
+    network-config {
+	hostname Muca
+	!
+	interface eth0
+	 ip address 192.0.2.20/24
+	 ipv6 address 2001:db8:0::20/64
+	!
+    }
+    canvas c1
+    iconcoords {468.0 119.0}
+    labelcoords {468.0 151.0}
+    interface-peer {eth0 n2}
+}
+
+node n5 {
+    type router
+    model PC
+    network-config {
+	hostname Clara
+	!
+	interface eth0
+	 ip address 192.0.2.21/24
+	 ipv6 address 2001:db8:0::21/64
+	!
+    }
+    canvas c1
+    iconcoords {621.0 164.0}
+    labelcoords {621.0 196.0}
+    interface-peer {eth0 n2}
+}
+
+link l1 {
+    nodes {n2 n4}
+    bandwidth 0
+}
+
+link l2 {
+    nodes {n2 n5}
+    bandwidth 0
+}
+
+link l3 {
+    nodes {n2 n1}
+    bandwidth 0
+}
+
+link l4 {
+    nodes {n1 n3}
+    bandwidth 0
+}
+
+canvas c1 {
+    name {Canvas1}
+}
+
+option global {
+    interface_names no
+    ip_addresses yes
+    ipv6_addresses yes
+    node_labels yes
+    link_labels yes
+    show_api no
+    background_images no
+    annotations yes
+    grid yes
+    traffic_start 0
+}
+
+option session {
+}
+
